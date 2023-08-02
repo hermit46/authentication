@@ -34,6 +34,11 @@ To update list of dependencies:
 
 [^1]: MAX QUERIES PER HOUR 800, MAX UPDATES PER HOUR 800, MAX_CONNECTIONS_PER_HOUR 800, MAX Connections 800
 
+## What a UserCredential is:
+
+- A username, where first 2 characters indicate the user's country (e.g. SGuser1, USuser2) (min. length = 3)
+- A password (min. length = 1)
+
 ## API Logic:
 
 1. First check if username and password provided meet minimum length requirements
