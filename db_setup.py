@@ -2,7 +2,11 @@ import mysql.connector
 from utils import Response, StatusCode
 
 
-def create_connection(host, port, database_name, username, password) -> (Response, mysql.connector.cursor.MySQLCursor):
+def create_connection(host,
+                      port,
+                      database_name,
+                      username,
+                      password) -> (Response, mysql.connector.cursor.MySQLCursor):
     """Create a database connection to the SQLite database."""
     response = Response()
     try:

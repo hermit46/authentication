@@ -38,9 +38,8 @@ To update list of dependencies:
 
 1. First check if username and password provided meet minimum length requirements
 2. Parse the country code out of the username and check if the country code is valid
-3. Open database/file
-4. Verify credentials against DB/file by checking for username match first, followed by match against hashed password input.
-5. Return an appropriate message or error, depending on where in the authentication the input fails
+3. Verify credentials against DB/file: check by username match, followed by hashed password match
+4. Return an appropriate message or error, depending on where in the authentication the input fails
 
 ## How to test the API:
 
