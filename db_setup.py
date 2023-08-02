@@ -7,7 +7,7 @@ def create_connection(host,
                       database_name,
                       username,
                       password) -> (Response, mysql.connector.cursor.MySQLCursor):
-    """Create a database connection to the SQLite database."""
+    """Create a database connection to the MySQL database."""
     response = Response()
     try:
         connection = mysql.connector.connect(
