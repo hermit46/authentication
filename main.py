@@ -5,6 +5,7 @@ from utils import StatusCode
 
 app = FastAPI()
 
+
 class UserCredentials(BaseModel):
     username: constr(min_length=3)
     password: constr(min_length=1)
@@ -20,6 +21,7 @@ CONFIG_FILE = "config.yaml"
 API Endpoints
 """
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World!"}
@@ -28,7 +30,7 @@ async def root():
 @app.post("/authenticate")
 def login(credentials: UserCredentials):
     """
-    Authenticate a user against a file (data.json)
+    Authenticate a user against a MySQL database.
 
     Args: credentials (UserCredentials): The user's login credentials
 
@@ -48,32 +50,34 @@ def login(credentials: UserCredentials):
         # Check if the username meets the 2-letter country code criteria
         if not check_country_code(countryCode):
             return HTTPException(
-                status_code=StatusCode.BAD_REQUEST.value, 
+                status_code=StatusCode.BAD_REQUEST.value,
                 detail="Username does not meet country code criteria"
             )
-        
-        response = verify_credentials(credentials.username, credentials.password, CONFIG_FILE)
+
+        response = verify_credentials(
+            credentials.username, credentials.password, CONFIG_FILE)
 
         # DB Connection Unsuccessful
-        if not response.connected: 
-            return HTTPException(status_code=response.status_code, 
-                                 detail=response.message) 
+        if not response.connected:
+            return HTTPException(status_code=response.status_code,
+                                 detail=response.message)
 
         match response.status_code:
             case StatusCode.SUCCESS.value:
-                return { 
+                return {
                     "success": response.connected,
                     "message": response.message,
-                    "status_code": response.status_code 
+                    "status_code": response.status_code
                 }
             case StatusCode.UNAUTHORIZED.value:
                 return HTTPException(status_code=response.status_code,
-                                      detail=response.message) 
+                                     detail=response.message)
             case StatusCode.INTERNAL_SERVER_ERROR.value:
                 return HTTPException(status_code=response.status_code,
-                                      detail=response.message)
-            
-    except ValidationError as ve: #note that this doesn't run, because it's caught by constr (BaseModel)
+                                     detail=response.message)
+
+    # note that this doesn't run, because it's caught by constr (BaseModel)
+    except ValidationError as ve:
         raise HTTPException(
             status_code=StatusCode.BAD_REQUEST.value,
             detail=ve.errors())
