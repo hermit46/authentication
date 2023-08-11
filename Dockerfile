@@ -1,30 +1,28 @@
-# Use the official alpine image as base image
-FROM python:alpine
+# Build Stage
+FROM python as build
 
-# Set the working directory within the container
-WORKDIR /main
+WORKDIR /app
 
-# Install pip first
-# NOTE: Alpine uses apk for package manager, while apt exists for Linux
-# NOTE: build-base(gcc) resolves the issue of buildling wheel for mysqlclient
-RUN apk add --no-cache python3 py3-pip mariadb-dev build-base mariadb-connector-c-dev pkgconf
-RUN pip3 install --upgrade pip
-
-# Copy the requirements file into the container
+# Copy and install dependencies
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies with headers for MySQL
-RUN pip3 install --no-cache-dir mysqlclient==2.2.0
-
-# Install the required dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-# Copy the rest of app code into container
+# Copy the rest of the application code
 COPY . .
 
-# Expose port 5000 to the host
-EXPOSE 5000
+# Runtime Stage
+FROM python:alpine as runtime
 
-# Define the command to run the application
-# NOTE: app will continue running as a web server
-CMD ["python", "main.py", "--foreground"]
+WORKDIR /app
+
+# Copy only necessary files from the build stage
+COPY --from=build /app /app
+
+# Runtime dependencies
+RUN pip install --no-cache-dir uvicorn fastapi pycountry 
+
+# Copy python-native packages from build stage to runtime stage
+COPY --from=build /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+
+# Set the entrypoint command
+CMD ["uvicorn", "main:app", "--port", "8000"]
