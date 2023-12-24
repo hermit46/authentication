@@ -4,19 +4,34 @@ import json
 
 import mysql.connector
 
-from db_setup import close_connection, create_connection
-from logic import read_yaml_config
-from utils import Response, StatusCode
+from authentication.db_setup import close_connection, create_connection
+from authentication.logic import read_yaml_config
+from utilities.classes import Response, StatusCode
+from constants.constants import CONFIG_FILE, JSON_FILE_PATH
+from typing import Optional
 
-"""
-Config Files
-"""
-CONFIG_FILE = "config.yaml"
-JSON_FILE_PATH = "userdata.json"
+# ----------------------------------------------------------------
+# create_table(connection) -> Response
+# populate_user_table(response, cursor, json_file_path) -> Response
+# create_connection(host, port, db_name, username, password) -> Response, cursor
+# close_connection(connection) -> Response
+# ----------------------------------------------------------------
 
 
 def create_table(connection) -> Response:
-    """Create the 'users' table in the database."""
+    """
+    Overview: Create the 'users' table in the database.
+
+    Arguments:
+    ------------
+    A SQL Connection
+
+    Returns:
+    ------------
+    A Response object
+
+
+    """
     create_table_query = """
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,6 +83,47 @@ def populate_user_table(response, cursor, json_file_path: str) -> Response:
     except mysql.connector.Error as e:
         response.status_code = StatusCode.INTERNAL_SERVER_ERROR.value
         response.message = e
+    return response
+
+
+def create_connection(
+    host, port, database_name, username, password
+) -> Optional(Response, mysql.connector.cursor.MySQLCursor):
+    """Create a database connection to the MySQL database."""
+    response = Response()
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            port=port,
+            database=database_name,
+            user=username,
+            password=password,
+        )
+        response.connected = True
+        response.message = "Connection to MySQL database successful."
+        response.connection = connection
+        response.status_code = StatusCode.SUCCESS.value
+        cursor = response.connection.cursor()
+    except mysql.connector.Error as e:
+        response.status_code = StatusCode.INTERNAL_SERVER_ERROR.value
+        response.message = f"Error connecting to the database: {e}"
+        cursor = None
+    return response, cursor
+
+
+def close_connection(connection) -> Response:
+    """Close the database connection."""
+    response = Response()
+    try:
+        if connection:
+            connection.close()
+            response.connected = False
+            response.connection = None
+            # response.message = "Connection closed."
+            response.status_code = StatusCode.SUCCESS.value
+    except mysql.connector.Error as e:
+        response.status_code = StatusCode.INTERNAL_SERVER_ERROR.value
+        response.message = f"Error closing the connection: {e}"
     return response
 
 

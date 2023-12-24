@@ -3,17 +3,20 @@
 import hashlib
 import json
 
-import mysql.connector
+from mysql.connector import connect, Error
 import pycountry
 import yaml
+from pathlib import Path
 from fastapi import HTTPException
 
-from db_setup import close_connection, create_connection
+from utilities.db_utils import close_connection, create_connection
 from utilities.classes import Response, StatusCode
 
-"""
-HELPER FUNCTIONS
-"""
+# ----------------------------------------------------------------
+# check_country_code(code) -> bool
+# verify_credentials(username, password, config_file) -> Response
+# read_yaml_config(file_path) -> object
+# ----------------------------------------------------------------
 
 
 def check_country_code(code: str) -> bool:
@@ -73,14 +76,14 @@ def verify_credentials(username: str, password: str, config_file: str) -> Respon
         # TODO: when does a closure of DB connection happen on an actual app?
         # when user session ends?
 
-    except mysql.connector.Error as e:
+    except Error as e:
         response.message = e
         response.status_code = StatusCode.INTERNAL_SERVER_ERROR.value
 
     return response
 
 
-def read_yaml_config(file_path) -> object:
+def read_yaml_config(file_path: Path) -> object:
     """Function to read YAML config file"""
     with open(file_path, "r") as file:
         return yaml.safe_load(file)

@@ -3,8 +3,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationError, constr
 
-from logic import check_country_code, verify_credentials
+from utilities.utilities import check_country_code, verify_credentials
 from utilities.classes import StatusCode
+from constants.constants import CONFIG_FILE
 
 app = FastAPI()
 

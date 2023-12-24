@@ -27,7 +27,7 @@ class Response:
     """
 
     def __init__(self, connected=False, message="", connection=None, status_code=-1):
-        # self.connected = connected
+        self.connected = connected
         self.message = message
         self.connection = connection
         self.status_code = status_code
