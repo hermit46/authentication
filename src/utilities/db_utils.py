@@ -1,8 +1,12 @@
-import mysql.connector, json
-from utils import Response, StatusCode
-from logic import read_yaml_config
-from db_setup import create_connection, close_connection
+#!/usr/bin/env python3
 
+import json
+
+import mysql.connector
+
+from db_setup import close_connection, create_connection
+from logic import read_yaml_config
+from utils import Response, StatusCode
 
 """
 Config Files
@@ -21,7 +25,7 @@ def create_table(connection) -> Response:
         )
     """
     try:
-        # TODO: the logic here is faulty. 
+        # TODO: the logic here is faulty.
         # close_connection mutates the response object, but mutation doesn't persist
         cursor = connection.cursor()
         cursor.execute(create_table_query)
@@ -35,24 +39,25 @@ def create_table(connection) -> Response:
         response.message = f"Error creating the table: {e}"
     return response
 
+
 def populate_user_table(response, cursor, json_file_path: str) -> Response:
-    """ Populates the user table with data from a given json file """
-    try: 
-        # TODO: think about the logic: a lot of duplicated code 
+    """Populates the user table with data from a given json file"""
+    try:
+        # TODO: think about the logic: a lot of duplicated code
         # when we keep re-establishing connection to DB
 
-        with open(json_file_path, 'r') as file:
+        with open(json_file_path, "r") as file:
             data = json.load(file)
-            users = data['users']
+            users = data["users"]
 
         insert_query = """
-            INSERT INTO users (username, password_hash) 
+            INSERT INTO users (username, password_hash)
             VALUES (%s, %s)
         """
 
         for user in users:
-            username = user['username']
-            password_hash = user['password_hash']
+            username = user["username"]
+            password_hash = user["password_hash"]
             values = (username, password_hash)
             cursor.execute(insert_query, values)
 
@@ -65,14 +70,15 @@ def populate_user_table(response, cursor, json_file_path: str) -> Response:
         response.message = e
     return response
 
+
 config = read_yaml_config(CONFIG_FILE)
 host, port, db_name, db_user, db_password = (
-            config["app"]["host"],
-            config["app"]["port"],
-            config["app"]["name"],
-            config["app"]["user"],
-            config["app"]["password"],
-        )
+    config["app"]["host"],
+    config["app"]["port"],
+    config["app"]["name"],
+    config["app"]["user"],
+    config["app"]["password"],
+)
 
 response, cursor = create_connection(host, port, db_name, db_user, db_password)
 

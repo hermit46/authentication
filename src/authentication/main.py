@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, constr, ValidationError
+from pydantic import BaseModel, ValidationError, constr
+
 from logic import check_country_code, verify_credentials
-from utils import StatusCode
+from utilities.classes import StatusCode
 
 app = FastAPI()
 
@@ -9,12 +12,6 @@ app = FastAPI()
 class UserCredentials(BaseModel):
     username: constr(min_length=3)
     password: constr(min_length=1)
-
-
-"""
-Config Files
-"""
-CONFIG_FILE = "config.yaml"
 
 
 """
@@ -51,33 +48,37 @@ def login(credentials: UserCredentials):
         if not check_country_code(countryCode):
             return HTTPException(
                 status_code=StatusCode.BAD_REQUEST.value,
-                detail="Username does not meet country code criteria"
+                detail="Username does not meet country code criteria",
             )
 
         response = verify_credentials(
-            credentials.username, credentials.password, CONFIG_FILE)
+            credentials.username, credentials.password, CONFIG_FILE
+        )
 
         # DB Connection Unsuccessful
         if not response.connected:
-            return HTTPException(status_code=response.status_code,
-                                 detail=response.message)
+            return HTTPException(
+                status_code=response.status_code, detail=response.message
+            )
 
         match response.status_code:
             case StatusCode.SUCCESS.value:
                 return {
                     "success": response.connected,
                     "message": response.message,
-                    "status_code": response.status_code
+                    "status_code": response.status_code,
                 }
             case StatusCode.UNAUTHORIZED.value:
-                return HTTPException(status_code=response.status_code,
-                                     detail=response.message)
+                return HTTPException(
+                    status_code=response.status_code, detail=response.message
+                )
             case StatusCode.INTERNAL_SERVER_ERROR.value:
-                return HTTPException(status_code=response.status_code,
-                                     detail=response.message)
+                return HTTPException(
+                    status_code=response.status_code, detail=response.message
+                )
 
     # note that this doesn't run, because it's caught by constr (BaseModel)
     except ValidationError as ve:
         raise HTTPException(
-            status_code=StatusCode.BAD_REQUEST.value,
-            detail=ve.errors())
+            status_code=StatusCode.BAD_REQUEST.value, detail=ve.errors()
+        )

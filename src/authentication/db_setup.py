@@ -1,12 +1,13 @@
+#!/usr/bin/env python3
+
 import mysql.connector
-from utils import Response, StatusCode
+
+from utilities.classes import Response, StatusCode
 
 
-def create_connection(host,
-                      port,
-                      database_name,
-                      username,
-                      password) -> (Response, mysql.connector.cursor.MySQLCursor):
+def create_connection(
+    host, port, database_name, username, password
+) -> (Response, mysql.connector.cursor.MySQLCursor):
     """Create a database connection to the MySQL database."""
     response = Response()
     try:
